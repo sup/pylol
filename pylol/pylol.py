@@ -143,11 +143,11 @@ class Pylol(object):
 
         Precondtions:
         """
-        assert option == 'masteries' or option == 'runes' or option == 'name', "The argument given is not a valid option."
         param = '/v1.2/summoner/' + `id` + '/'
         if option == None:
             return self._request(param)
         else:
+            assert option == 'masteries' or option == 'runes' or option == 'name', "The argument given is not a valid option."
             param = param + option
             return self._request(param)
 
@@ -162,7 +162,13 @@ class Pylol(object):
         pass
 
     def get_team(self,id):
-        pass
+        """
+        Returns:
+
+        Preconditions:
+        """
+        param = '/v2.2/team/by-summoner/' + `id`
+        return self._request(param)
 
 
 
