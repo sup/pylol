@@ -38,7 +38,8 @@ class Pylol(object):
     This class contains the necessary functions to make API calls to the
     official Riot Games League of Legends developer API. More info in the 
     README file. Anything not clarified in module documentation can be
-    found gleaned by consulting the Riot API documentation.
+    found gleaned by consulting the Riot API documentation, especially
+    the specifics of the JSON data returned.
     """
     #Constants:
     URL_BASE = 'http://prod.api.pvp.net/api/lol/'
@@ -89,30 +90,9 @@ class Pylol(object):
     def get_champions(self, free_to_play = False):
         """
         Returns: A single entry hash table containing a list of champions 
-        with key "champions". The list of champions that corresponds to the 
-        key is a list of hash tables containing each champion's attributes.
-        Additionally, an optional parameter for filtering free to play
-        champions can be specified.
-
-        Example
-        -------
-        {"champions": [
-           {
-              "botMmEnabled": false,
-              "defenseRank": 4,
-              "attackRank": 8,
-              "id": 266,
-              "rankedPlayEnabled": true,
-              "name": "Aatrox",
-              "botEnabled": false,
-              "difficultyRank": 6,
-              "active": true,
-              "freeToPlay": false,
-              "magicRank": 3
-           },
-           ...
-        ]}
-
+        The list of champions is a list of hash tables containing each 
+        champion's attributes. Additionally, an optional parameter for 
+        filtering free to play champions can be specified.
         """
         param = '/v1.1/champion'
         #Add the appropriate arguments to the call parameters if filtering
@@ -123,9 +103,8 @@ class Pylol(object):
 
     def get_game(self, id):
         """
-        Returns: A 2 entry hash table containing a list of games under "games"
-        played recently by a given summoner, and the summoner's summoner id
-        under "summonerid". The list of games is a list of hash tables with
+        Returns: A 2 entry hash table containing a list of games and 
+        the summoner id. The list of games is a list of hash tables with
         various entries detailing the stats and data of each given game.
 
         Precondtions: id is an integer number
@@ -136,7 +115,9 @@ class Pylol(object):
 
     def get_league(self,id):
         """
-        Returns: 
+        Returns: A single entry hash table containing another hash table under
+        a specified summoner id. This second hash table contains various
+        attributes about specified summoner's league/queue type.
 
         Precondtions: id is an integer number
         """
@@ -146,43 +127,54 @@ class Pylol(object):
 
     def get_stats(self,id,option='summary'):
         """
-        Returns:
+        Returns: A 2 entry hash table containing a list of stats and the
+        specified summoner id. The list of stats is a list of hash tables 
+        with various entries detailing the stats of a given summoner.
+        Option can be either 'summary' or 'ranked'.
 
-        Precondtions:
+        Precondtions: id is an integer, option is a valid option
         """
+        assert type(id) == int, "The summoner id given is not an integer"
+        assert option == 'summary' or option == 'ranked', "The option is not a valid one"
         param = '/v1.2/stats/by-summoner/' + `id` + '/' + option
         return self._request(param)
 
     def get_summoner(self,id,option=None):
         """
-        Returns:
+        Returns: A 5-entry hash tabe containing basic data about a given
+        summoner. If option is specified to be 'masteries', 'runes', or 
+        'name', the API will return the appropriate data.
 
-        Precondtions:
+        Precondtions: id is an integer, option is a valid option
         """
+        assert type(id) == int, "The summoner id given is not an integer"
         param = '/v1.2/summoner/' + `id` + '/'
         if option == None:
             return self._request(param)
         else:
-            assert option == 'masteries' or option == 'runes' or option == 'name', "The argument given is not a valid option."
+            assert option == 'masteries' or option == 'runes' or option == 'name', "The option is not a valid one"
             param = param + option
             return self._request(param)
 
     def get_summoner_by_name(self,name):
         """
-        Returns:
+        Returns: A 5-entry hash tabe containing basic data about a given
+        summoner by name.
 
-        Precondtions:
+        Precondtions: name is a string
         """
+        assert type(name) == str, "The summoner name given is not a string"
         param = '/v1.2/summoner/by-name/' + name
         return self._request(param)
-        pass
 
     def get_team(self,id):
         """
-        Returns:
+        Returns: A list of data and hash tables containing various data
+        about a given summoner's teams and its statistics.
 
-        Preconditions:
+        Preconditions: id is an integer
         """
+        assert type(id) == int, "The summoner id given is not an integer"
         param = '/v2.2/team/by-summoner/' + `id`
         return self._request(param)
 
