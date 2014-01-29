@@ -5,7 +5,6 @@ pylol - A Python wrapper for Riot Games' League of Legends API
 Charles Lai (www.charlesjianlai.com)
 www.github.com/charleslai/pylol
 
-
 The MIT License (MIT)
 
 Copyright (c) 2013 Charles J. Lai
@@ -43,12 +42,14 @@ class Pylol(object):
     """
     #Constants:
     URL_BASE = 'http://prod.api.pvp.net/api/lol/'
+    RATE_LIMIT = None   #5 requests every 10 seconds
 
     #Fields
     _api_key = ""
     _region = ""
+    _cache = {}     #This cache caches the url parameter/hash table result
 
-    #Properties
+    #Getters/Setters
     @property
     def api_key(self):
         return self._api_key
@@ -65,26 +66,48 @@ class Pylol(object):
     def region(self, r):
         self._region = r
 
+    @property
+    def cache(self):
+        return self._cache
+
+    @cache.setter
+    def cache(self, c):
+        self._cache = c
+
     #Constructor
-    def __init__(self, key, r = 'na'):
+    def __init__(self, key, r = 'na', c = {}):
         self.api_key = key
         self.region = r
+        self.cache = c
 
     #Helper Method for performing a specified call
     def _request(self, param, special_case = False):
         """
-        Returns: Parsed JSON data after forming an HTTP request to Riot Games.
+        Returns: Parsed JSON data after forming an HTTP GET request to Riot Games.
         The data returned depends on a specified parameter that is generated
         by the various methods below. URL is both formatted and sent with this
         method.
         """
+        #Check if the GET parameters are already in the cache
+        if param in self.cache:
+            return self.cache[param]
+
         #Check if the API call should be formatted differently
         if special_case:
-            #Case: Free to play champion filter
+            #Case: Free to play champion filter - special GET parameter
             if param == '/v1.1/champion?freeToPlay=true':
-                return json.loads(urllib2.urlopen(self.URL_BASE + urllib2.quote(self.region) + param + '&api_key=' + urllib2.quote(self.api_key)).read())
+                return json.loads(urllib2.urlopen(self.URL_BASE + 
+                urllib2.quote(self.region) + param + '&api_key=' + 
+                urllib2.quote(self.api_key)).read())
+
+        #Else, make a new request, parse the JSON, and cache the data.
         else:
-            return json.loads(urllib2.urlopen(self.URL_BASE + urllib2.quote(self.region) + param + '?api_key=' + urllib2.quote(self.api_key)).read())
+            self.cache[param] = json.loads(urllib2.urlopen(self.URL_BASE + 
+            urllib2.quote(self.region) + param + '?api_key=' + 
+            urllib2.quote(self.api_key)).read())
+            return self.cache[param]
+
+
 
     #Methods for formatting API calls
     def get_champions(self, free_to_play = False):
@@ -95,7 +118,7 @@ class Pylol(object):
         filtering free to play champions can be specified.
         """
         param = '/v1.1/champion'
-        #Add the appropriate arguments to the call parameters if filtering
+        #Add the appropriate GET parameter if filtering
         if free_to_play:
             param = param + '?freeToPlay=true'
             return self._request(param, True)
@@ -110,7 +133,7 @@ class Pylol(object):
         Precondtions: id is an integer number
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v1.2/game/by-summoner/' + `id` + '/recent'
+        param = '/v1.3/game/by-summoner/' + `id` + '/recent'
         return self._request(param)
 
     def get_league(self,id):
@@ -122,7 +145,7 @@ class Pylol(object):
         Precondtions: id is an integer number
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v2.2/league/by-summoner/' + `id`
+        param = '/v2.3/league/by-summoner/' + `id`
         return self._request(param)
 
     def get_stats(self,id,option='summary'):
@@ -136,7 +159,7 @@ class Pylol(object):
         """
         assert type(id) == int, "The summoner id given is not an integer"
         assert option == 'summary' or option == 'ranked', "The option is not a valid one"
-        param = '/v1.2/stats/by-summoner/' + `id` + '/' + option
+        param = '/v1.3/stats/by-summoner/' + `id` + '/' + option
         return self._request(param)
 
     def get_summoner(self,id,option=None):
@@ -148,7 +171,7 @@ class Pylol(object):
         Precondtions: id is an integer, option is a valid option
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v1.2/summoner/' + `id` + '/'
+        param = '/v1.3/summoner/' + `id` + '/'
         if option == None:
             return self._request(param)
         else:
@@ -156,16 +179,19 @@ class Pylol(object):
             param = param + option
             return self._request(param)
 
-    def get_summoner_by_name(self,name):
+    def get_summoner_by_name(self,name, option=None):
         """
         Returns: A 5-entry hash tabe containing basic data about a given
-        summoner by name.
+        summoner by name. If the option is
 
         Precondtions: name is a string
         """
         assert type(name) == str, "The summoner name given is not a string"
-        param = '/v1.2/summoner/by-name/' + name
-        return self._request(param)
+        param = '/v1.3/summoner/by-name/' + name
+        if option == None:
+            return self._request(param)
+        else:
+            pass
 
     def get_team(self,id):
         """
@@ -175,7 +201,7 @@ class Pylol(object):
         Preconditions: id is an integer
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v2.2/team/by-summoner/' + `id`
+        param = '/v2.3/team/by-summoner/' + `id`
         return self._request(param)
 
 
