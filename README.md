@@ -2,6 +2,7 @@ pylol
 =====
 
 A Python wrapper for Riot Games' League of Legends API
+(may not be up to date with API latest specifications - see last commit for dates)
 
 Description
 =========
