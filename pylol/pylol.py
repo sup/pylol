@@ -41,7 +41,7 @@ class Pylol(object):
     the specifics of the JSON data returned.
     """
     #Constants:
-    URL_BASE = 'http://prod.api.pvp.net/api/lol/'
+    URL_BASE = 'https://na.api.pvp.net/api/lol/'
     RATE_LIMIT = None   #5 requests every 10 seconds
 
     #Fields
@@ -95,7 +95,7 @@ class Pylol(object):
         #Check if the API call should be formatted differently
         if special_case:
             #Case: Free to play champion filter - special GET parameter
-            if param == '/v1.1/champion?freeToPlay=true':
+            if param == '/v1.2/champion?freeToPlay=true':
                 return json.loads(urllib2.urlopen(self.URL_BASE + 
                 urllib2.quote(self.region) + param + '&api_key=' + 
                 urllib2.quote(self.api_key)).read())
@@ -117,7 +117,7 @@ class Pylol(object):
         champion's attributes. Additionally, an optional parameter for 
         filtering free to play champions can be specified.
         """
-        param = '/v1.1/champion'
+        param = '/v1.2/champion'
         #Add the appropriate GET parameter if filtering
         if free_to_play:
             param = param + '?freeToPlay=true'
@@ -145,7 +145,7 @@ class Pylol(object):
         Precondtions: id is an integer number
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v2.3/league/by-summoner/' + `id`
+        param = '/v2.5/league/by-summoner/' + `id`
         return self._request(param)
 
     def get_stats(self,id,option='summary'):
@@ -171,7 +171,7 @@ class Pylol(object):
         Precondtions: id is an integer, option is a valid option
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v1.3/summoner/' + `id` + '/'
+        param = '/v1.4/summoner/' + `id` + '/'
         if option == None:
             return self._request(param)
         else:
@@ -187,7 +187,7 @@ class Pylol(object):
         Precondtions: name is a string
         """
         assert type(name) == str, "The summoner name given is not a string"
-        param = '/v1.3/summoner/by-name/' + name
+        param = '/v1.4/summoner/by-name/' + name
         if option == None:
             return self._request(param)
         else:
@@ -201,9 +201,11 @@ class Pylol(object):
         Preconditions: id is an integer
         """
         assert type(id) == int, "The summoner id given is not an integer"
-        param = '/v2.3/team/by-summoner/' + `id`
+        param = '/v2.4/team/by-summoner/' + `id`
         return self._request(param)
 
+def print_json(res):
+    print json.dumps(res, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 
